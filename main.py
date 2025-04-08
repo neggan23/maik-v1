@@ -1,19 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import openai
 import datetime
+import uuid
 
+from google.cloud import spanner
+
+# CONFIGURACIÓN DE FLASK
 app = Flask(__name__)
 app.secret_key = '230624Mili'  # Clave de seguridad principal
 
-# Reemplazá con tu clave real de OpenAI
-openai.api_key = 'TU_API_KEY'
+# CONFIGURACIÓN DE OPENAI
+openai.api_key = 'TU_API_KEY'  # Reemplazar con tu clave real
 
-# Ruta de inicio de sesión
+# CONFIGURACIÓN DE SPANNER
+INSTANCE_ID = 'maik-instance'
+DATABASE_ID = 'maik-db'
+spanner_client = spanner.Client()
+instance = spanner_client.instance(INSTANCE_ID)
+database = instance.database(DATABASE_ID)
+
+# RUTAS DE AUTENTICACIÓN
 @app.route('/')
 def login():
     return render_template('inicio de sesión.html')
 
-# Ruta de verificación de clave
 @app.route('/acceso', methods=['POST'])
 def acceso():
     clave = request.form.get('clave')
@@ -23,20 +33,18 @@ def acceso():
     else:
         return 'Acceso denegado. Clave incorrecta.'
 
-# Panel inteligente de Maik
 @app.route('/maik')
 def panel_maik():
     if not session.get('autenticado'):
         return redirect(url_for('login'))
     return render_template('maik.html')
 
-# Ruta para cerrar sesión
 @app.route('/salir')
 def salir():
     session.clear()
     return redirect(url_for('login'))
 
-# API principal de Maik (motor apiV1 con GPT-4 Turbo)
+# API PRINCIPAL DE MAIK (INTELIGENCIA)
 @app.route('/apiV1', methods=['POST'])
 def apiV1():
     if not session.get('autenticado'):
@@ -44,25 +52,36 @@ def apiV1():
 
     data = request.json
     prompt = data.get('mensaje')
-    user_id = session.get('usuario', 'yeis')  # default para pruebas
+    user_id = session.get('usuario', 'yeis')  # Por defecto "yeis"
 
     try:
-        # Interacción con el modelo
         respuesta = openai.ChatCompletion.create(
             model="gpt-4-turbo",
             messages=[{"role": "user", "content": prompt}]
         )
-
         texto = respuesta.choices[0].message.content
 
-        # [FUTURO] Guardar en memoria Spanner
-        # guardar_interaccion(user_id, prompt, texto)
-
+        guardar_interaccion(user_id, prompt, texto)
         return jsonify({'respuesta': texto})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Punto de entrada principal
+# GUARDAR EN SPANNER
+def guardar_interaccion(usuario, mensaje, respuesta):
+    with database.batch() as batch:
+        batch.insert(
+            table='Interacciones',
+            columns=('id', 'usuario', 'mensaje', 'respuesta', 'timestamp'),
+            values=[(
+                str(uuid.uuid4()),
+                usuario,
+                mensaje,
+                respuesta,
+                spanner.COMMIT_TIMESTAMP
+            )]
+        )
+
+# EJECUCIÓN
 if __name__ == '__main__':
     app.run(debug=True)
