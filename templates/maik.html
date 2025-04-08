@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel de Maik</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo_jarvis.css') }}">
     <script>
         async function enviarMensaje() {
             const mensaje = document.getElementById('mensaje').value;
@@ -17,10 +18,10 @@
     </script>
 </head>
 <body>
-    <h1>Hola Yeis, soy Maik.</h1>
+    <h1>Bienvenido, Yeis. Soy Maik.</h1>
     <input type="text" id="mensaje" placeholder="Escribí algo...">
     <button onclick="enviarMensaje()">Enviar</button>
-    <p><strong>Maik:</strong> <span id="respuesta"></span></p>
+    <p id="respuesta"></p>
     <a href="/salir">Cerrar sesión</a>
 </body>
 </html>
