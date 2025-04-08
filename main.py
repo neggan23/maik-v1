@@ -1,19 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import os
-import requests
+import openai
 
 app = Flask(__name__)
-app.secret_key = '230624Mili'  # Clave principal de seguridad
+app.secret_key = '230624Mili'  # Clave principal
 
-# ======= CONFIGURACIÓN APIv1 MAIK ========
-API_V1_URL = "http://localhost:8000/maikv1/preguntar"  # Cambialo si lo hosteás en otro lado
+# Clave de la API (reemplazala con tu clave real de OpenAI)
+openai.api_key = 'TU_API_KEY'
 
-# ======= PANTALLA DE INICIO DE SESIÓN ========
+# Rutas base
 @app.route('/')
 def login():
     return render_template('inicio de sesión.html')
 
-# ======= PROCESO DE ACCESO ========
 @app.route('/acceso', methods=['POST'])
 def acceso():
     clave = request.form.get('clave')
@@ -24,33 +22,33 @@ def acceso():
     else:
         return 'Acceso denegado. Clave incorrecta.'
 
-# ======= PANEL PRINCIPAL DE MAIK ========
 @app.route('/maik')
 def panel_maik():
     if not session.get('autenticado'):
         return redirect(url_for('login'))
     return render_template('maik.html')
 
-# ======= CERRAR SESIÓN ========
 @app.route('/salir')
 def salir():
     session.clear()
     return redirect(url_for('login'))
 
-# ======= INTEGRACIÓN CON MOTOR apiV1 DE MAIK ========
-@app.route('/preguntar', methods=['POST'])
-def preguntar():
+# Motor apiV1 con GPT-4 Turbo
+@app.route('/apiV1', methods=['POST'])
+def apiV1():
     data = request.json
     prompt = data.get('mensaje')
 
     try:
-        respuesta_api = requests.post(API_V1_URL, json={"mensaje": prompt})
-        respuesta_api.raise_for_status()
-        contenido = respuesta_api.json()
-        return jsonify({'respuesta': contenido.get("respuesta", "Sin respuesta desde el motor apiV1")})
+        respuesta = openai.ChatCompletion.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        texto = respuesta.choices[0].message.content
+        return jsonify({'respuesta': texto})
     except Exception as e:
-        return jsonify({'respuesta': f'Error al consultar motor Maik: {str(e)}'})
+        return jsonify({'error': str(e)}), 500
 
-# ======= INICIAR FLASK ========
+# Ejecutar app
 if __name__ == '__main__':
     app.run(debug=True)
