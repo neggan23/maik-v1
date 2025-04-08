@@ -1,1 +1,26 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Maik</title>
+    <script>
+        async function enviarMensaje() {
+            const mensaje = document.getElementById('mensaje').value;
+            const res = await fetch('/apiV1', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({mensaje})
+            });
+            const data = await res.json();
+            document.getElementById('respuesta').innerText = data.respuesta || 'Error en la respuesta.';
+        }
+    </script>
+</head>
+<body>
+    <h1>Hola Yeis, soy Maik.</h1>
+    <input type="text" id="mensaje" placeholder="Escribí algo...">
+    <button onclick="enviarMensaje()">Enviar</button>
+    <p><strong>Maik:</strong> <span id="respuesta"></span></p>
+    <a href="/salir">Cerrar sesión</a>
+</body>
+</html>
