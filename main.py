@@ -37,40 +37,29 @@ def salir():
 if __name__ == '__main__':
     app.run(debug=True)
 
-from flask import Flask, request, jsonify
-import openai  # Asegurate de tenerlo en tu requirements.txt
+from flask import Flask, render_template, request, jsonify
+import openai
 
 app = Flask(__name__)
 
-# Clave secreta de OpenAI (mejor usar variable de entorno en producción)
-openai.api_key = "sk-tu_clave_aqui"
+openai.api_key = 'TU_API_KEY'
 
 @app.route('/')
 def home():
-    return "Maik está activo y esperando órdenes, Yeis."
+    return render_template('index.html')
 
-@app.route('/maik', methods=['POST'])
-def chat_with_maik():
-    data = request.get_json()
-    user_input = data.get("mensaje")
+@app.route('/preguntar', methods=['POST'])
+def preguntar():
+    data = request.json
+    prompt = data.get('mensaje')
 
-    if not user_input:
-        return jsonify({"error": "Mensaje no recibido"}), 400
+    respuesta = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-    try:
-        # Llamada a OpenAI
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # o "gpt-4" si tenés acceso
-            messages=[
-                {"role": "system", "content": "Sos Maik, el asistente leal y poderoso de Yeis."},
-                {"role": "user", "content": user_input}
-            ]
-        )
-        respuesta = response.choices[0].message.content
-        return jsonify({"respuesta": respuesta})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    texto = respuesta.choices[0].message.content
+    return jsonify({'respuesta': texto})
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
