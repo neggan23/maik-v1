@@ -1,1 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'build']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['run', 'deploy', 'maik-api', '--image', 'gcr.io/$PROJECT_ID/maik-api', '--platform', 'managed', '--region', 'us-central1', '--allow-unauthenticated']
 
+images:
+  - gcr.io/$PROJECT_ID/maik-api
+  
