@@ -8,6 +8,5 @@ steps:
 
 images:
   - gcr.io/$PROJECT_ID/maik-api
-
-  options:
+options:
   logging: CLOUD_LOGGING_ONLY
