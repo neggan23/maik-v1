@@ -1,22 +1,38 @@
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from flask import Flask, render_template, request, redirect, url_for, session
+import os
 
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app = Flask(__name__)
+app.secret_key = '230624Mili'  # Clave principal de seguridad
 
-# Usuario y contraseña fija (esto luego se puede mejorar con DB)
-USER = "yeis"
-PASSWORD = "230624Mili"
+# Ruta principal: pantalla de inicio de sesión
+@app.route('/')
+def login():
+    return render_template('inicio de sesión.html')
 
-@app.get("/", response_class=HTMLResponse)
-async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+# Ruta POST del login
+@app.route('/acceso', methods=['POST'])
+def acceso():
+    clave = request.form.get('clave')
+    
+    if clave == '230624Mili':
+        session['autenticado'] = True
+        return redirect(url_for('panel_maik'))
+    else:
+        return 'Acceso denegado. Clave incorrecta.'
 
-@app.post("/login", response_class=HTMLResponse)
-async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    if username == USER and password == PASSWORD:
-        return templates.TemplateResponse("maik.html", {"request": request, "user": username})
-    return RedirectResponse("/", status_code=302)
+# Ruta del panel principal de Maik
+@app.route('/maik')
+def panel_maik():
+    if not session.get('autenticado'):
+        return redirect(url_for('login'))
+    return render_template('maik.html')
+
+# Logout
+@app.route('/salir')
+def salir():
+    session.clear()
+    return redirect(url_for('login'))
+
+# Ejecución local
+if __name__ == '__main__':
+    app.run(debug=True)
