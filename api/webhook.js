@@ -11,8 +11,8 @@ export default async function handler(req, res) {
 
     // Respuesta automática
     if (mensaje.includes('maik')) {
-      await axios.post('https://api.ultramsg.com/INSTANCE_ID/messages/chat', {
-        token: 'TU_TOKEN',
+      await axios.post('https://api.ultramsg.com/instance113211/messages/chat', {
+        token: 'x4vms4myv3yrovxq',
         to: numero,
         body: 'Hola, soy Maik. Estoy activo y operativo, señor Yeis.',
       });
