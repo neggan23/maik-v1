@@ -1,3 +1,4 @@
+// pages/api/webhook.js
 import axios from 'axios';
 
 export default async function handler(req, res) {
@@ -8,12 +9,12 @@ export default async function handler(req, res) {
     const mensaje = data?.message?.body?.toLowerCase() || '';
     const numero = data?.message?.from || '';
 
-    // Respuesta automática de Maik estilo Jarvis
+    // Respuesta automática
     if (mensaje.includes('maik')) {
       await axios.post('https://api.ultramsg.com/INSTANCE_ID/messages/chat', {
         token: 'TU_TOKEN',
         to: numero,
-        body: 'Hola, soy Maik. Estoy conectado y operativo, señor Yeis.',
+        body: 'Hola, soy Maik. Estoy activo y operativo, señor Yeis.',
       });
     }
 
